@@ -16,6 +16,9 @@ GAT outperformed GCN due to its ability to weigh node relationships dynamically.
 ---
 
 ## **Data & Graph Construction**
+
+*This publication includes or references synthetic data provided by J.P. Morgan.* 
+
 The dataset consists of financial transactions with attributes such as:
 - `transaction_id`: Unique identifier for the transaction
 - `sender`: Account initiating the transaction
