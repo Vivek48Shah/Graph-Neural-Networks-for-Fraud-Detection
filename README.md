@@ -135,18 +135,33 @@ class FraudGAT(nn.Module):
 ```python
 from torch_geometric.loader import DataLoader
 
-def train_model(model, data, epochs=50):
-    optimizer = torch.optim.Adam(model.parameters(), lr=0.01)
-    criterion = torch.nn.CrossEntropyLoss()
-    model.train()
+def train_model(model, graph_data, epochs=50):
+    fraud_weight = len(y) / (2 * sum(y.cpu().numpy() == 1))
+    normal_weight = len(y) / (2 * sum(y.cpu().numpy() == 0))
+    weights = torch.tensor([normal_weight, fraud_weight], dtype=torch.float).to(device)
     
-    for epoch in range(epochs):
+    # Update loss function with class weights
+    criterion = nn.NLLLoss(weight=weights)
+    optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+    
+    # Train the model
+    num_epochs = epochs
+    model.train()
+    for epoch in range(num_epochs):
         optimizer.zero_grad()
-        out = model(data)
-        loss = criterion(out, data.y)
+        
+        # Forward pass
+        out = model(X, graph_data.edge_index)
+        
+        # Compute loss on training nodes only
+        loss = criterion(out[train_mask], y[train_mask])
+        
+        # Backpropagation
         loss.backward()
         optimizer.step()
-        print(f"Epoch {epoch+1}, Loss: {loss.item():.4f}")
+        
+        if epoch % 10 == 0:
+            print(f"Epoch {epoch}, Loss: {loss.item()}")
 ```
 ---
 
