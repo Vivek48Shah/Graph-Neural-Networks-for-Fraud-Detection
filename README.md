@@ -1,7 +1,3 @@
-# Graph-Neural-Networks-for-Fraud-Detection
-
-
-
 # **Fraud Detection in Payment Transactions using Graph Neural Networks**
 
 ## **Project Overview**
