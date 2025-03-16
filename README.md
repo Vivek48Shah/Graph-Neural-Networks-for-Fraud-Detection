@@ -99,33 +99,36 @@ weighted avg       0.98      0.90      0.93     57604
 ```python
 # Import necessary libraries
 import torch
-from torch_geometric.nn import GCNConv, GATConv
+from torch_geometric.nn import GCNConv
 
-class FraudGCN(torch.nn.Module):
+class FraudGCN(nn.Module):
     def __init__(self, in_features, hidden_dim, out_features):
         super(FraudGCN, self).__init__()
         self.conv1 = GCNConv(in_features, hidden_dim)
         self.conv2 = GCNConv(hidden_dim, out_features)
-    
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        x = self.conv1(x, edge_index).relu()
+
+    def forward(self, x, edge_index):
+        x = self.conv1(x, edge_index)
+        x = F.relu(x)
         x = self.conv2(x, edge_index)
-        return x
+        return F.log_softmax(x, dim=1)
+
 ```
 
 ```python
-class FraudGAT(torch.nn.Module):
+from torch_geometric.nn import GATConv
+
+class FraudGAT(nn.Module):
     def __init__(self, in_features, hidden_dim, out_features, heads=4):
         super(FraudGAT, self).__init__()
         self.conv1 = GATConv(in_features, hidden_dim, heads=heads, concat=True)
         self.conv2 = GATConv(hidden_dim * heads, out_features, heads=1, concat=False)
-    
-    def forward(self, data):
-        x, edge_index = data.x, data.edge_index
-        x = self.conv1(x, edge_index).relu()
+
+    def forward(self, x, edge_index):
+        x = self.conv1(x, edge_index)
+        x = F.elu(x)
         x = self.conv2(x, edge_index)
-        return x
+        return F.log_softmax(x, dim=1)
 ```
 
 ### **Training Pipeline**
