@@ -135,33 +135,34 @@ class FraudGAT(nn.Module):
 ```python
 from torch_geometric.loader import DataLoader
 
-def train_model(model, graph_data, epochs=50):
-    fraud_weight = len(y) / (2 * sum(y.cpu().numpy() == 1))
-    normal_weight = len(y) / (2 * sum(y.cpu().numpy() == 0))
-    weights = torch.tensor([normal_weight, fraud_weight], dtype=torch.float).to(device)
+
+fraud_weight = len(y) / (2 * sum(y.cpu().numpy() == 1))
+normal_weight = len(y) / (2 * sum(y.cpu().numpy() == 0))
+weights = torch.tensor([normal_weight, fraud_weight], dtype=torch.float).to(device)
+
+# Update loss function with class weights
+criterion = nn.NLLLoss(weight=weights)
+optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+
+# Train the model
+num_epochs = epochs
+model.train()
+for epoch in range(num_epochs):
     
-    # Update loss function with class weights
-    criterion = nn.NLLLoss(weight=weights)
-    optimizer = optim.Adam(model.parameters(), lr=0.01, weight_decay=5e-4)
+    optimizer.zero_grad()
     
-    # Train the model
-    num_epochs = epochs
-    model.train()
-    for epoch in range(num_epochs):
-        optimizer.zero_grad()
-        
-        # Forward pass
-        out = model(X, graph_data.edge_index)
-        
-        # Compute loss on training nodes only
-        loss = criterion(out[train_mask], y[train_mask])
-        
-        # Backpropagation
-        loss.backward()
-        optimizer.step()
-        
-        if epoch % 10 == 0:
-            print(f"Epoch {epoch}, Loss: {loss.item()}")
+    # Forward pass
+    out = model(X, graph_data.edge_index)
+    
+    # Compute loss on training nodes only
+    loss = criterion(out[train_mask], y[train_mask])
+    
+    # Backpropagation
+    loss.backward()
+    optimizer.step()
+    
+    if epoch % 10 == 0:
+    print(f"Epoch {epoch}, Loss: {loss.item()}")
 ```
 ---
 
